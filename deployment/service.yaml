@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: apis-service
+  namespace: pcsongs
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    name: port-5000
+    targetPort: 5000
+  selector:
+    run: apis-deployment
+  type: ClusterIP

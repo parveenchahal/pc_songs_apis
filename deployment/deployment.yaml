@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apis-deployment
+  namespace: pcsongs
+spec:
+  selector:
+      matchLabels:
+        run: apis-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: apis-deployment
+    spec:
+      containers:
+      - name: pcsongs-1
+        image: pchahal24/pc_songs_apis:latest
+        imagePullPolicy: Always
+        ports:
+          - name: port-5000
+            containerPort: 5000
+            protocol: TCP
+        resources:
+          limits:
+            cpu: 300m
+            memory: 256Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+        env:
+        - name: AAD_IDENTITY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pc-identity
+              key: key
+        - name: AAD_IDENTITY_TENANT
+          valueFrom:
+            secretKeyRef:
+              name: pc-identity
+              key: tenant
+        - name: AAD_IDENTITY_CLIENTID
+          valueFrom:
+            secretKeyRef:
+              name: pc-identity
+              key: clientId
