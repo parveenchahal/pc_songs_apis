@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: apis-service
   namespace: pcsongs
+  labels:
+    run: apis-deployment
 spec:
   ports:
   - port: 5000
