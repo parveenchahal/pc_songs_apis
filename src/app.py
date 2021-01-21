@@ -6,6 +6,7 @@ from common.key_vault import KeyVaultSecret
 import config
 import logging
 from controllers import FolderController, FileDownloadController
+from songs_library import SongsLibrary
 
 app = Flask(__name__)
 api = Api(app)
@@ -20,7 +21,7 @@ key_vault_token = AADToken(AAD_IDENTITY_CLIENTID, AAD_IDENTITY_SECRET, 'https://
 
 box_auth_secret = KeyVaultSecret(config.KeyVaultName, config.BoxAuthSecretName, key_vault_token).get()
 
-api.add_resource(FolderController, '/pc_songs/folders/<id>', endpoint="folders", resource_class_args=(logger, box_auth_secret))
+api.add_resource(FolderController, '/pc_songs/folders/<id>', endpoint="folders", resource_class_args=(logger, SongsLibrary(box_auth_secret)))
 api.add_resource(FileDownloadController, '/pc_songs/files/<id>/content', endpoint="file_content", resource_class_args=(logger, box_auth_secret))
 
 

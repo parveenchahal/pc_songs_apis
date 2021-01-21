@@ -1,23 +1,17 @@
 from common import Controller
 from logging import Logger
-from requests import request
-from common.utils import parse_json
 from common import http_responses
-from utils import parse_folders_and_files_list
+from songs_library import SongsLibrary
+
 
 class FolderController(Controller):
 
-    _token: str
-    _folder_url: str = 'https://api.box.com/2.0/folders/{id}'
-    
-    def __init__(self, logger: Logger, token: str):
+    _songs_library: SongsLibrary
+
+    def __init__(self, logger: Logger, songs_library :SongsLibrary):
         super().__init__(logger)
-        self._token = token
+        self._songs_library = songs_library
 
     def get(self, id):
-        url = self._folder_url.format_map({'id': id})
-        res = request("GET", url, headers={"Authorization": f'Bearer {self._token}'})
-        res = parse_json(res.text)
-        res = res['item_collection']['entries']
-        res = parse_folders_and_files_list(res)
+        res = self._songs_library.get(id)
         return http_responses.JSONResponse(res)
