@@ -4,7 +4,7 @@ from common import http_responses
 from songs_library import SongsLibrary
 
 
-class FolderController(Controller):
+class FileController(Controller):
 
     _songs_library: SongsLibrary
 
@@ -13,5 +13,7 @@ class FolderController(Controller):
         self._songs_library = songs_library
 
     def get(self, id):
-        res = self._songs_library.get_folder(id)
+        res = self._songs_library.get_file(id)
+        if res is None:
+            return http_responses.NotFoundResponse()
         return http_responses.JSONResponse(res)
