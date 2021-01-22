@@ -33,6 +33,9 @@ class SongsLibrary(object):
         with self._lock:
             return copy.deepcopy(self._cached_files.get(file_id, None))
 
+    def force_update(self):
+        self._fetch_and_cache()
+
     def _fetch_and_cache(self):
         folders_data = {}
         files_data = {}

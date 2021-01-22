@@ -15,6 +15,8 @@ class SubItemsController(Controller):
 
     def get(self, id, subitem_type: str):
         subitem_type = subitem_type.lower()
+        if subitem_type not in ('subfolders', 'files'):
+            return http_responses.NotFoundResponse()
         res = []
         q = deque()
         items = self._songs_library.get_folder(id)
