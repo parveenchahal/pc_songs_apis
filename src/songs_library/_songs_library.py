@@ -59,6 +59,11 @@ class SongsLibrary(object):
         with self._lock:
             self._cached_folders = folders_data
             self._cached_files = files_data
+
+    def _remove_file_extension(self, li: List[ItemModel]):
+        for x in li:
+            if x.type == 'file':
+                x.name = x.name[0:x.name.rfind('.')]
     
     def _filter(self, li: List[ItemModel]):
         def wrapper(x: ItemModel):
@@ -74,4 +79,5 @@ class SongsLibrary(object):
         res = res['item_collection']['entries']
         res = parse_folders_and_files_list(res)
         res = self._filter(res)
+        self._remove_file_extension(res)
         return res
