@@ -1,14 +1,12 @@
-from datetime import datetime, time, timedelta
-from logging import Logger, exception
-from threading import RLock
-from flask.helpers import send_file
-from requests import get as http_get, request
+from datetime import timedelta
+from logging import Logger
+from requests import request
 import json
 from collections import deque
-from common.utils import json_to_obj, parse_json
+from common.utils import bytes_to_string, decode_base64, parse_json, encode_base64, string_to_bytes
 from common import Scheduler
 from common.exceptions import KeyNotFoundInCacheError
-from common.cache import Cache
+from common.cache import Cache, cached
 from typing import List, Tuple, Union
 from item_model import ItemModel
 from utils import parse_folders_and_files_list
@@ -36,9 +34,16 @@ class SongsLibrary(object):
             return []
 
     def download_file(self, file_id):
-        url = self._file_content_url.format_map({'id': file_id})
-        res = request("GET", url, headers={"Authorization": f'Bearer {self._token}'})
-        return res.content
+        @cached(
+            self._cache,
+            ttl=timedelta(hours=1),
+            serializer=lambda x: bytes_to_string(encode_base64(x)),
+            deserializer=lambda x: decode_base64(string_to_bytes(x)))
+        def wrapper(file_id, dummy):
+            url = self._file_content_url.format_map({'id': file_id})
+            res = request("GET", url, headers={"Authorization": f'Bearer {self._token}'})
+            return res.content
+        return wrapper(file_id, 'dummy')
 
     def force_update(self):
         self._fetch_and_cache()
