@@ -40,6 +40,7 @@ class SongsLibrary(object):
             serializer=lambda x: bytes_to_string(encode_base64(x)),
             deserializer=lambda x: decode_base64(string_to_bytes(x)))
         def wrapper(file_id, dummy):
+            self._logger.info(f'Downloading file {file_id} from actual origin')
             url = self._file_content_url.format_map({'id': file_id})
             res = request("GET", url, headers={"Authorization": f'Bearer {self._token}'})
             return res.content
