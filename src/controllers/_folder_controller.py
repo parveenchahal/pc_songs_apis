@@ -13,5 +13,5 @@ class FolderController(Controller):
         self._songs_library = songs_library
 
     def get(self, id):
-        res = self._songs_library.get_folder(id)
+        res = self._songs_library.get(id)
         return http_responses.JSONResponse(res)

@@ -19,7 +19,7 @@ class SubItemsController(Controller):
             return http_responses.NotFoundResponse()
         res = []
         q = deque()
-        items = self._songs_library.get_folder(id)
+        items = self._songs_library.get(id)
         for x in items:
             if x.type == 'folder':
                 q.append(x.id)
@@ -30,7 +30,7 @@ class SubItemsController(Controller):
 
         while len(q):
             id = q.popleft()
-            items = self._songs_library.get_folder(id)
+            items = self._songs_library.get(id)
             for x in items:
                 if x.type == 'folder':
                     q.append(x.id)

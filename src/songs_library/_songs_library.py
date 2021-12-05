@@ -28,14 +28,11 @@ class SongsLibrary(object):
         self._schedular = Scheduler(self._fetch_and_cache, self._refresh_interval, 'song_library_schedular')
         self._schedular.start()
     
-    def get_folder(self, folder_id: str = '0') -> List[ItemModel]:
+    def get(self, item_id: str = '0') -> Union[ItemModel, List[ItemModel]]:
         try:
-            return self._cache.get(folder_id, self._deserialize)
+            return self._cache.get(item_id, self._deserialize)
         except KeyNotFoundInCacheError:
             return []
-
-    def get_file(self, file_id: str = '0') -> List[ItemModel]:
-        return self._cache.get(file_id, self._deserialize)
 
     def force_update(self):
         self._fetch_and_cache()

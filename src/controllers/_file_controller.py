@@ -13,7 +13,7 @@ class FileController(Controller):
         self._songs_library = songs_library
 
     def get(self, id):
-        res = self._songs_library.get_file(id)
+        res = self._songs_library.get(id)
         if res is None:
             return http_responses.NotFoundResponse()
         return http_responses.JSONResponse(res)
