@@ -1,7 +1,7 @@
-import io
 from logging import Logger
 from common import Controller
 from common import http_responses
+from common.utils import chunked
 from songs_library import SongsLibrary
 
 class FileDownloadController(Controller):
@@ -14,14 +14,4 @@ class FileDownloadController(Controller):
 
     def get(self, id):
         content = self._songs_library.download_file(id)
-        def stream():
-            try:
-                bio = io.BytesIO(content)
-                while True:
-                    chunk = bio.read(1024)
-                    if not chunk:
-                        break
-                    yield chunk
-            finally:
-                bio.close()
-        return http_responses.Response(stream(), 200, None, 'audio/mpeg')
+        return http_responses.Response(chunked(content), 200, None, 'audio/mpeg')
