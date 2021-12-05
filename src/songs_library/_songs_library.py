@@ -17,7 +17,7 @@ class SongsLibrary(object):
     _file_content_url: str = 'https://api.box.com/2.0/files/{id}/content'
     _token: str
     _audio_file_extensions: Tuple[str] = ('.mp3',)
-    _refresh_interval: timedelta = timedelta(days=1)
+    _refresh_interval: timedelta = timedelta(hours=8)
     _cache: Cache
 
     def __init__(self, logger: Logger, token: str, cache: Cache) -> None:
