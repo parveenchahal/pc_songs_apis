@@ -27,7 +27,7 @@ key_vault_token = AADToken(AAD_IDENTITY_CLIENTID, AAD_IDENTITY_SECRET, 'https://
 
 box_auth_secret = KeyVaultSecret(config.KeyVaultName, config.BoxAuthSecretName, key_vault_token).get()
 
-songs_library = SongsLibrary(logger, box_auth_secret, RedisCache(redis_client, timedelta(days=7), 'pcsongs'))
+songs_library = SongsLibrary(logger, box_auth_secret, RedisCache(redis_client, timedelta(days=2), 'pcsongs'))
 
 api.add_resource(FolderController, '/pc_songs/folders/<id>', endpoint="folders", resource_class_args=(logger, songs_library))
 api.add_resource(FileController, '/pc_songs/files/<id>', endpoint="files", resource_class_args=(logger, songs_library))
