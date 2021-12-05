@@ -1,64 +1,80 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
+from logging import Logger, exception
 from threading import RLock
+from flask.helpers import send_file
 from requests import get as http_get, request
-import copy
+import json
 from collections import deque
-from common.utils import parse_json
+from common.utils import json_to_obj, parse_json
 from common import Scheduler
-from typing import List, Tuple
+from common.exceptions import KeyNotFoundInCacheError
+from common.cache import Cache
+from typing import List, Tuple, Union
 from item_model import ItemModel
 from utils import parse_folders_and_files_list
 
 class SongsLibrary(object):
 
     _folder_url: str = 'https://api.box.com/2.0/folders/{id}?limit=1000'
-    _cached_folders: dict = {0: []}
-    _cached_files: dict = {}
-    _cache_timeout: timedelta = timedelta(days=1)
-    _lock: RLock
     _token: str
     _audio_file_extensions: Tuple[str] = ('.mp3',)
+    _refresh_interval: timedelta = timedelta(days=1)
+    _cache: Cache
 
-    def __init__(self, token: str) -> None:
+    def __init__(self, logger: Logger, token: str, cache: Cache) -> None:
+        self._logger = logger
         self._token = token
-        self._lock = RLock()
-        self._schedular = Scheduler(self._fetch_and_cache, self._cache_timeout, 'song_library_schedular')
+        self._cache = cache
+        self._schedular = Scheduler(self._fetch_and_cache, self._refresh_interval, 'song_library_schedular')
         self._schedular.start()
     
     def get_folder(self, folder_id: str = '0') -> List[ItemModel]:
-        with self._lock:
-            return copy.deepcopy(self._cached_folders.get(folder_id, []))
+        try:
+            return self._cache.get(folder_id, self._deserialize)
+        except KeyNotFoundInCacheError:
+            return []
 
     def get_file(self, file_id: str = '0') -> List[ItemModel]:
-        with self._lock:
-            return copy.deepcopy(self._cached_files.get(file_id, None))
+        return self._cache.get(file_id, self._deserialize)
 
     def force_update(self):
         self._fetch_and_cache()
 
+    def _serialize(self, data: Union[ItemModel, List[ItemModel]]) -> str:
+        if type(data) == list:
+            data = [ItemModel.to_dict(x) for x in data]
+        else:
+            data = ItemModel.to_dict(data)
+        return json.dumps(data)
+
+    def _deserialize(self, data: str) -> Union[ItemModel, List[ItemModel]]:
+        data = json.loads(data)
+        if type(data) == list:
+            data = [ItemModel.from_dict(ItemModel, x) for x in data]
+        else:
+            data = ItemModel.from_dict(ItemModel, data)
+        return data
+
     def _fetch_and_cache(self):
-        folders_data = {}
-        files_data = {}
+        self._logger.info('Refresh songs library started.')
         q = deque()
         res = self._get_from_box('0')
-        folders_data['0'] = res
-        for x in res:
-            if x.type == 'folder':
-                q.append(x.id)
-            elif x.type == 'file':
-                files_data[x.id] = x
+        self._cache.set('0', res, serializer=self._serialize)
+        for item in res:
+            if item.type == 'folder':
+                q.append(item.id)
+            elif item.type == 'file':
+                self._cache.set(item.id, item, serializer=self._serialize)
         while len(q) > 0:
             id = q.popleft()
             res = self._get_from_box(id)
-            folders_data[id] = res
-            for x in res:
-                if x.type == 'folder':
-                    q.append(x.id)
-                elif x.type == 'file':
-                    files_data[x.id] = x
-        with self._lock:
-            self._cached_folders = folders_data
-            self._cached_files = files_data
+            self._cache.set(id, res, serializer=self._serialize)
+            for item in res:
+                if item.type == 'folder':
+                    q.append(item.id)
+                elif item.type == 'file':
+                    self._cache.set(item.id, item, serializer=self._serialize)
+        self._logger.info('Refresh songs library completed.')
 
     def _remove_file_extension(self, li: List[ItemModel]):
         for x in li:
