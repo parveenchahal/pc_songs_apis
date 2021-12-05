@@ -1,18 +1,16 @@
-from common import Controller
 from logging import Logger
-from requests import request
+from common import Controller
 from common import http_responses
+from songs_library import SongsLibrary
 
 class FileDownloadController(Controller):
 
-    _token: str
-    _file_content_url: str = 'https://api.box.com/2.0/files/{id}/content'
-    
-    def __init__(self, logger: Logger, token: str):
+    _songs_library: SongsLibrary
+
+    def __init__(self, logger: Logger, songs_library: SongsLibrary):
         super().__init__(logger)
-        self._token = token
+        self._songs_library = songs_library
 
     def get(self, id):
-        url = self._file_content_url.format_map({'id': id})
-        res = request("GET", url, headers={"Authorization": f'Bearer {self._token}'})
-        return http_responses.Response(res.content, 200, None, 'audio/mpeg')
+        content = self._songs_library.download_file(id)
+        return http_responses.Response(content, 200, None, 'audio/mpeg')

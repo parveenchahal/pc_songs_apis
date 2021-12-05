@@ -32,7 +32,7 @@ songs_library = SongsLibrary(logger, box_auth_secret, RedisCache(redis_client, t
 api.add_resource(FolderController, '/pc_songs/folders/<id>', endpoint="folders", resource_class_args=(logger, songs_library))
 api.add_resource(FileController, '/pc_songs/files/<id>', endpoint="files", resource_class_args=(logger, songs_library))
 api.add_resource(SubItemsController, '/pc_songs/folders/<id>/<subitem_type>', endpoint="folder_subfolders", resource_class_args=(logger, songs_library))
-api.add_resource(FileDownloadController, '/pc_songs/files/<id>/content', endpoint="file_content", resource_class_args=(logger, box_auth_secret))
+api.add_resource(FileDownloadController, '/pc_songs/files/<id>/content', endpoint="file_content", resource_class_args=(logger, songs_library))
 api.add_resource(ForceUpdateController, '/pc_songs/forceupdate', endpoint="force_update", resource_class_args=(logger, songs_library))
 
 if __name__ == '__main__':

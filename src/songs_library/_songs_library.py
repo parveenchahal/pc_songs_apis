@@ -16,6 +16,7 @@ from utils import parse_folders_and_files_list
 class SongsLibrary(object):
 
     _folder_url: str = 'https://api.box.com/2.0/folders/{id}?limit=1000'
+    _file_content_url: str = 'https://api.box.com/2.0/files/{id}/content'
     _token: str
     _audio_file_extensions: Tuple[str] = ('.mp3',)
     _refresh_interval: timedelta = timedelta(days=1)
@@ -33,6 +34,11 @@ class SongsLibrary(object):
             return self._cache.get(item_id, self._deserialize)
         except KeyNotFoundInCacheError:
             return []
+
+    def download_file(self, file_id):
+        url = self._file_content_url.format_map({'id': file_id})
+        res = request("GET", url, headers={"Authorization": f'Bearer {self._token}'})
+        return res.content
 
     def force_update(self):
         self._fetch_and_cache()
