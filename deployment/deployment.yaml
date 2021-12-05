@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: pcsongs-1
-        image: pchahal24/pc_songs_apis:latest
+        image: pchahal24/pc_songs_apis:2021-12-05
         imagePullPolicy: Always
         ports:
           - name: port-5000
